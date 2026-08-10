@@ -1,0 +1,21 @@
+{
+  "name": "pterodactyl-german-locales",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Version-pinned English, German, Swabian, and Bavarian source localization for Pterodactyl Panel",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:dialects": "node tools/build-dialects.mjs",
+    "extract": "node tools/extract.mjs",
+    "verify": "node tools/verify.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.1",
+    "@babel/parser": "^7.12.1",
+    "@babel/traverse": "^7.12.1"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "routeProperties": {
+    "resources/scripts/routers/routes.ts": ["name"]
+  },
+  "translatedJsxAttributes": [
+    "aria-label",
+    "alt",
+    "content",
+    "description",
+    "label",
+    "placeholder",
+    "title"
+  ],
+  "translatedObjectProperties": [
+    "buttonText",
+    "content",
+    "description",
+    "emptyMessage",
+    "label",
+    "message",
+    "text",
+    "title",
+    "tooltip"
+  ],
+  "translatedCallMethods": {
+    "email": [0],
+    "max": [1],
+    "min": [1],
+    "matches": [1],
+    "oneOf": [1],
+    "required": [0],
+    "test": [1]
+  }
+}

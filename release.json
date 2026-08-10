@@ -1,0 +1,9 @@
+{
+  "release": "complete-r4-20260810",
+  "upstream": "1.15.0",
+  "locales": ["en", "de", "swg", "bar"],
+  "frontendCatalogEntries": 524,
+  "adminCatalogEntries": 652,
+  "adminSourceReplacements": 1123,
+  "notes": "Reviewed terminology, Blade-safe admin navigation, tooltip localization, quality-scoped regional catalogs, and release-wide machine-translation rejection."
+}

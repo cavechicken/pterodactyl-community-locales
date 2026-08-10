@@ -1,0 +1,48 @@
+name: Build or integration bug
+description: Report a reproducible problem applying or building the locale patch.
+title: "[bug]: "
+labels:
+  - bug
+body:
+  - type: input
+    id: panel-version
+    attributes:
+      label: Pterodactyl Panel version
+      description: This project is version-pinned; unsupported versions may fail deliberately.
+      placeholder: "1.15.0"
+    validations:
+      required: true
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js version
+      placeholder: "22.x"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      description: Use a clean upstream tree and redact all production details.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Sanitized error output
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Safety checks
+      options:
+        - label: I reproduced this against the exact supported upstream version.
+          required: true
+        - label: I removed credentials, internal addresses, user data, and unredacted production logs.
+          required: true

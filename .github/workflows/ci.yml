@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install localization dependencies
+        run: npm ci
+
+      - name: Download pinned upstream Panel
+        run: |
+          curl --fail --location --silent --show-error \
+            "$(node -p "require('./upstream.json').archiveUrl")" \
+            --output panel.tar.gz
+          echo "$(node -p "require('./upstream.json').sha256")  panel.tar.gz" \
+            | sha256sum --check --strict
+          mkdir panel
+          tar -xzf panel.tar.gz -C panel
+
+      - name: Verify and apply localization
+        run: |
+          npm run build:dialects
+          npm run verify -- "$PWD/panel"
+          npm test
+          ./scripts/check-publication.sh
+          node tools/apply.mjs "$PWD/panel"
+
+      - name: Build and test patched Panel
+        working-directory: panel
+        run: |
+          corepack yarn install --frozen-lockfile
+          corepack yarn tsc
+          corepack yarn lint
+          corepack yarn test --runInBand
+          corepack yarn build:production
+
+      - name: Check compiled localization markers
+        run: |
+          grep -RqlF 'frontend:ui_search_49c266baaa' panel/public/assets/*.js
+          grep -RqlF 'frontend:ui_memory_c3963aedaa' panel/public/assets/*.js

@@ -1,0 +1,123 @@
+.ptero-i18n-language-menu {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 10000;
+    color: #e5e7eb;
+    font: 14px/1.35 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.ptero-i18n-language-menu > summary {
+    display: flex;
+    min-width: 9.5rem;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    gap: .65rem;
+    align-items: center;
+    padding: .45rem .7rem;
+    list-style: none;
+    cursor: pointer;
+    background: #111a24;
+    border: 1px solid #42536a;
+    border-radius: .75rem;
+    box-shadow: 0 .45rem 1.4rem rgb(0 0 0 / 35%);
+    transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease;
+}
+
+.ptero-i18n-language-menu > summary::-webkit-details-marker { display: none; }
+.ptero-i18n-language-menu > summary:hover { background: #172332; border-color: #22d3ee; }
+.ptero-i18n-language-menu > summary:focus-visible { outline: 3px solid #22d3ee; outline-offset: 3px; }
+.ptero-i18n-language-menu[open] > summary { border-color: #22d3ee; transform: translateY(-.1rem); }
+
+.ptero-i18n-language-current { flex: 1; font-weight: 650; letter-spacing: .01em; }
+.ptero-i18n-language-chevron {
+    width: .5rem;
+    height: .5rem;
+    border-right: 2px solid #9ca3af;
+    border-bottom: 2px solid #9ca3af;
+    transform: rotate(45deg) translateY(-.15rem);
+    transition: transform 120ms ease;
+}
+.ptero-i18n-language-menu[open] .ptero-i18n-language-chevron { transform: rotate(225deg) translate(-.1rem, -.1rem); }
+
+.ptero-i18n-language-popover {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + .65rem);
+    width: min(25rem, calc(100vw - 2rem));
+    overflow: hidden;
+    background: #101923;
+    border: 1px solid #42536a;
+    border-radius: .9rem;
+    box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 48%);
+}
+
+.ptero-i18n-language-popover header {
+    display: grid;
+    gap: .2rem;
+    padding: 1rem 1rem .8rem;
+    background: #162231;
+    border-bottom: 1px solid #344459;
+}
+.ptero-i18n-language-popover header strong { color: #f3f4f6; font-size: 1rem; }
+.ptero-i18n-language-popover header span { color: #9ca3af; font-size: .8rem; }
+
+.ptero-i18n-language-options { display: grid; gap: .3rem; padding: .45rem; }
+.ptero-i18n-language-options form { margin: 0; }
+.ptero-i18n-language-options button {
+    display: flex;
+    width: 100%;
+    min-height: 3.75rem;
+    box-sizing: border-box;
+    gap: .8rem;
+    align-items: center;
+    padding: .6rem .7rem;
+    color: #e5e7eb;
+    text-align: left;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: .65rem;
+    transition: background-color 100ms ease, border-color 100ms ease;
+}
+.ptero-i18n-language-options button:hover { background: #1c2a3a; border-color: #42536a; }
+.ptero-i18n-language-options button:focus-visible { outline: 3px solid #22d3ee; outline-offset: -1px; }
+.ptero-i18n-language-options button[aria-current="true"] { background: #12313a; border-color: #1597aa; }
+
+.ptero-i18n-language-copy { display: grid; flex: 1; gap: .12rem; }
+.ptero-i18n-language-copy strong { color: #f3f4f6; font-size: .9rem; }
+.ptero-i18n-language-copy small { color: #aeb8c6; font-size: .76rem; font-weight: 400; }
+.ptero-i18n-language-check { color: #67e8f9; font-size: 1.1rem; font-weight: 800; }
+
+.ptero-i18n-language-flag {
+    display: inline-grid;
+    flex: 0 0 2.15rem;
+    width: 2.15rem;
+    height: 1.45rem;
+    place-items: center;
+    overflow: hidden;
+    color: #fff;
+    font-size: .65rem;
+    font-weight: 850;
+    letter-spacing: .04em;
+    text-shadow: 0 1px 2px #000;
+    background: #243244;
+    border: 1px solid rgb(255 255 255 / 25%);
+    border-radius: .22rem;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 35%);
+}
+.ptero-i18n-language-flag--en { background: linear-gradient(31deg, #1b3d78 0 38%, #fff 39% 47%, #c8102e 48% 56%, #fff 57% 65%, #1b3d78 66%); }
+.ptero-i18n-language-flag--de { background: linear-gradient(#171717 0 33%, #c52233 33% 66%, #f7cb45 66%); }
+.ptero-i18n-language-flag--swg { color: #111; text-shadow: 0 1px #fff8; background: linear-gradient(135deg, #f5d547 0 48%, #151515 49% 56%, #f5d547 57%); }
+.ptero-i18n-language-flag--bar { background: repeating-linear-gradient(135deg, #fff 0 .36rem, #3481c4 .36rem .72rem); }
+
+@media (max-width: 520px) {
+    .ptero-i18n-language-menu { right: .6rem; bottom: .6rem; }
+    .ptero-i18n-language-menu > summary { min-width: auto; }
+    .ptero-i18n-language-current { display: none; }
+    .ptero-i18n-language-popover { width: calc(100vw - 1.2rem); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ptero-i18n-language-menu *, .ptero-i18n-language-menu *::before, .ptero-i18n-language-menu *::after { transition: none !important; }
+}
