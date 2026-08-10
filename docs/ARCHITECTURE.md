@@ -17,6 +17,12 @@ of truth for the German-derived locales. Swabian and Bavarian catalogs are
 complete overlays generated from German plus reviewed regional labels and full
 phrases. Broad word-by-word dialect conversion is prohibited.
 
+`locales.json` is the single locale manifest. It defines the code, English and
+native names, selector badge, namespace inheritance, and i18next fallbacks.
+The applier renders the TypeScript union, Laravel allowlist, language helper,
+and selector menu from this manifest. Adding a language therefore does not
+require editing security-sensitive routing or validation code.
+
 ## Locale persistence
 
 The language menu submits to an authenticated Laravel route with CSRF
@@ -31,3 +37,14 @@ selection in Pterodactyl's existing user language field.
 - No database migration is added.
 - No production configuration belongs in this repository.
 - Release artifacts are built from the checksum-pinned official source archive.
+
+## Deployment model
+
+`install.sh` performs the source build in an isolated tree and delegates
+activation to `install-release.sh`. The builder records hashes for every
+non-runtime upstream file; activation refuses modified, missing, additional, or
+stale source files before maintenance mode. It preserves `.env`, `storage`,
+`vendor`, cache ownership, and favicons and never runs migrations. The complete
+old tree is renamed within the same filesystem before the staged tree is moved
+into place. Any post-activation failure invokes the reciprocal rename and
+health-checks the restored Panel.

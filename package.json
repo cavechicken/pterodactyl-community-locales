@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build:dialects": "node tools/build-dialects.mjs",
+    "locale:add": "node tools/add-locale.mjs",
     "extract": "node tools/extract.mjs",
     "verify": "node tools/verify.mjs",
     "test": "node --test test/*.test.mjs"

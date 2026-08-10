@@ -1,0 +1,41 @@
+{
+  "defaultLocale": "en",
+  "locales": [
+    {
+      "code": "en",
+      "englishName": "English",
+      "nativeName": "English",
+      "badge": "EN",
+      "descriptionKey": "languageDescriptionEnglish",
+      "baseLocale": null,
+      "fallbacks": []
+    },
+    {
+      "code": "de",
+      "englishName": "German",
+      "nativeName": "Deutsch",
+      "badge": "DE",
+      "descriptionKey": "languageDescriptionGerman",
+      "baseLocale": "en",
+      "fallbacks": ["en"]
+    },
+    {
+      "code": "swg",
+      "englishName": "Swabian",
+      "nativeName": "Schwäbisch",
+      "badge": "BW",
+      "descriptionKey": "languageDescriptionSwabian",
+      "baseLocale": "de",
+      "fallbacks": ["de", "en"]
+    },
+    {
+      "code": "bar",
+      "englishName": "Bavarian",
+      "nativeName": "Bayrisch",
+      "badge": "BY",
+      "descriptionKey": "languageDescriptionBavarian",
+      "baseLocale": "de",
+      "fallbacks": ["de", "en"]
+    }
+  ]
+}

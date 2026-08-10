@@ -4,6 +4,8 @@ set -Eeuo pipefail
 readonly ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 readonly PRIVATE_PATTERN='cavetown[.]de|extgate|/opt/services|159[.]195[.]|172[.]27[.]|46[.]142[.]'
 
+bash -n "$ROOT"/scripts/*.sh
+
 if grep -RInEi \
     --exclude-dir=.git \
     --exclude-dir=.generated \

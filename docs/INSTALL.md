@@ -1,38 +1,85 @@
 # Installation
 
-This project intentionally does not provide a universal root installer. Panel
-service names, PHP versions, web-server layouts, permissions, and deployment
-procedures differ between installations. A generic script that guesses those
-details would be unsafe.
+The deployment assistant supports clean, unmodified Pterodactyl Panel 1.15.0
+installations. It deliberately fails when service discovery, dependency
+identity, health checks, ownership, or version checks are ambiguous.
 
 ## Before installing
 
 1. Confirm the live Panel is exactly version 1.15.0.
-2. Back up the Panel database.
+2. Back up the Panel database independently and test its restore procedure.
 3. Back up the complete Panel filesystem, including `.env`, storage, and custom
    assets.
-4. Confirm the restore procedure before entering maintenance mode.
-5. Build the localized archive from the official source with
-   `scripts/build-release.sh`, or obtain a release artifact and verify its
-   published SHA-256.
+4. Confirm the Panel is healthy before starting.
+5. Confirm the queue and PHP-FPM systemd unit names, and that `APP_URL` is
+   reachable from the Panel host.
+
+The build host needs Node.js 22 or newer, npm, Corepack/Yarn 1 support, PHP CLI,
+`tar`, `zstd`, `curl`, and standard GNU/Linux administration tools. The
+transactional service integration currently targets systemd installations.
+
+## One-command build and installation
+
+After inspecting the cloned repository:
+
+```bash
+sudo ./scripts/install.sh --panel /var/www/pterodactyl
+```
+
+The installer downloads only the exact URL in `upstream.json`; the builder
+then verifies the pinned SHA-256. Building runs in a protected temporary tree,
+not inside the live Panel.
+
+If service discovery is ambiguous, specify it explicitly:
+
+```bash
+sudo ./scripts/install.sh \
+  --panel /var/www/pterodactyl \
+  --queue-service pteroq.service \
+  --php-service php8.3-fpm.service \
+  --health-url https://panel.example.com
+```
+
+Apache `mod_php` installations can pass `--php-service none`. A non-systemd
+queue manager must be stopped and supervised manually; passing
+`--queue-service none` accepts that responsibility and is not the recommended
+path.
+
+To avoid rebuilding, download a published `.tar.zst` and its adjacent
+`.sha256`, then use `--release-archive`. To build from an already downloaded
+official source, use `--source-archive panel.tar.gz`.
 
 ## Deployment model
 
-Treat the localized archive as a rebuilt Pterodactyl Panel release. Follow the
-official Pterodactyl manual-update procedure for the pinned Panel release, but
-use the verified localized archive instead of the unmodified upstream archive.
+The installer treats the localized archive as a rebuilt Pterodactyl release.
+It verifies every non-runtime file in the live Panel against a source manifest
+generated from the checksum-pinned upstream release. It also verifies that the
+live and staged `composer.lock` files are identical, copies runtime state into
+staging, validates PHP and the language route, and
+only then enters maintenance mode.
 
-Preserve the live `.env`, storage directory, uploads, permissions, Composer
-dependencies, scheduler, queue worker, and web-server configuration. Never run
-`tools/apply.mjs` against the live Panel: it is a development tool for a clean
-staging tree and refuses a directory containing `.env`.
+It preserves `.env`, `storage`, `vendor`, cache ownership, and
+`public/favicons`. It clears Laravel views, configuration, and routes, restarts
+the queue and selected PHP service, and checks the configured health URL. It
+does not touch Wings or running game containers and does not run database
+migrations.
 
-At minimum, acceptance must verify:
+This strict check intentionally refuses existing source customizations and an
+already-patched localization tree. Such installations need a reviewed manual
+merge or a future version-specific upgrade path; `--yes` does not bypass the
+source check.
+
+Never run `tools/apply.mjs` against the live Panel: it is a development tool for
+a clean staging tree and refuses a directory containing `.env`.
+
+## Acceptance
+
+At minimum, verify:
 
 - login and account settings;
-- all four locale selections and persistence after sign-out/sign-in;
+- all declared locale selections and persistence after sign-out/sign-in;
 - client server controls and console connectivity;
-- administration navigation and forms;
+- administration navigation, submenus, dialogs, and forms;
 - queue worker health;
 - Wings API connectivity;
 - one representative server operation;
@@ -40,10 +87,16 @@ At minimum, acceptance must verify:
 
 ## Rollback
 
-If any acceptance check fails, restore the complete pre-installation Panel tree
-and database backup as a matched pair, clear Laravel caches, restore ownership,
-and restart the queue worker and PHP service. Do not attempt a partial rollback
-of only compiled JavaScript assets.
+If an activation check fails, the installer automatically restores the complete
+previous tree, clears caches, restarts the selected services, and verifies the
+old Panel's health. On success it prints the protected rollback directory and
+does not delete it. Keep it until authenticated browser, administration, queue,
+Wings, and representative server tests have passed.
 
-The official Panel release is documented at
-<https://github.com/pterodactyl/panel/releases/tag/v1.15.0>.
+No migration is performed, so the installer does not automatically restore a
+database. Retaining an independently tested database backup remains mandatory
+operational practice. Do not attempt a partial rollback of only JavaScript
+assets.
+
+The official Panel update procedure is documented at
+<https://pterodactyl.io/panel/1.0/updating.html>.

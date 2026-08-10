@@ -5,6 +5,7 @@ import path from 'node:path';
 import { localizeAdminViews } from './blade-localize.mjs';
 import { writePhpCatalog } from './catalog-to-php.mjs';
 import { packRoot, readJson } from './lib.mjs';
+import { phpString, readLocaleManifest, resolveLocaleCatalogs } from './locales.mjs';
 
 function fail(message) {
     console.error(`ERROR: ${message}`);
@@ -23,6 +24,18 @@ function copy(relativeSource, root, relativeTarget = relativeSource) {
     fs.chmodSync(target, 0o644);
 }
 
+function copyRendered(relativeSource, root, relativeTarget, replacements) {
+    const source = path.join(packRoot, relativeSource);
+    const target = path.join(root, relativeTarget);
+    let content = fs.readFileSync(source, 'utf8');
+    for (const [marker, replacement] of Object.entries(replacements)) {
+        if (content.includes(marker)) content = content.replaceAll(marker, replacement);
+    }
+    if (/__PTERO_I18N_[A-Z_]+__/.test(content)) fail(`unresolved template marker in ${relativeSource}`);
+    fs.mkdirSync(path.dirname(target), { recursive: true, mode: 0o755 });
+    fs.writeFileSync(target, content, { mode: 0o644 });
+}
+
 function patchFile(root, relative, expectedHash, replacements) {
     const target = path.join(root, relative);
     if (sha256(target) !== expectedHash) fail(`upstream source hash differs for ${relative}`);
@@ -34,17 +47,13 @@ function patchFile(root, relative, expectedHash, replacements) {
     fs.writeFileSync(target, source);
 }
 
-function mergeLocale(base, overrides, name) {
-    const unknown = Object.keys(overrides).filter((key) => !(key in base));
-    if (unknown.length > 0) fail(`${name} overrides contain unknown keys: ${unknown.join(', ')}`);
-    return { ...base, ...overrides };
-}
-
-function cloneGermanNamespaces(panelRoot, locale) {
-    const german = path.join(panelRoot, 'resources/lang/de');
+function ensureLocaleNamespace(panelRoot, locale, baseLocale) {
     const target = path.join(panelRoot, `resources/lang/${locale}`);
-    fs.rmSync(target, { recursive: true, force: true });
-    fs.cpSync(german, target, { recursive: true });
+    if (fs.existsSync(target)) return;
+    if (!baseLocale) fail(`Panel has no namespace for ${locale} and locales.json defines no baseLocale`);
+    const base = path.join(panelRoot, `resources/lang/${baseLocale}`);
+    if (!fs.existsSync(base)) fail(`base namespace does not exist for ${locale}: ${baseLocale}`);
+    fs.cpSync(base, target, { recursive: true });
 }
 
 const panelRoot = path.resolve(process.argv[2] || '');
@@ -56,6 +65,31 @@ if (fs.existsSync(path.join(panelRoot, '.env'))) {
 }
 
 const upstream = readJson('upstream.json');
+const localeManifest = readLocaleManifest();
+const localeCatalogs = resolveLocaleCatalogs(localeManifest);
+const localeCodes = localeManifest.locales.map((locale) => locale.code);
+const tsString = (value) => `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+const localeType = localeCodes.map(tsString).join(' | ');
+const localeNames = localeManifest.locales.map((locale) => (
+    `        ${phpString(locale.code)} => ['english' => ${phpString(locale.englishName)}, 'native' => ${phpString(locale.nativeName)}],`
+)).join('\n');
+const selectorLanguages = localeManifest.locales.map((locale) => (
+    `            ${phpString(locale.code)} => ['short' => ${phpString(locale.badge)}, ` +
+    `'name' => ${phpString(locale.nativeName)}, 'description' => __('frontend.${locale.descriptionKey}')],`
+)).join('\n');
+const fallbackLines = localeManifest.locales.map((locale) => (
+    `            ${locale.code}: [${locale.fallbacks.map(tsString).join(', ')}],`
+));
+fallbackLines.push(`            default: [${tsString(localeManifest.defaultLocale)}],`);
+const templateValues = {
+    __PTERO_I18N_DEFAULT_LOCALE__: tsString(localeManifest.defaultLocale),
+    __PTERO_I18N_SUPPORTED_LOCALE_TYPE__: localeType,
+    __PTERO_I18N_SUPPORTED_LOCALES__: `[${localeCodes.map(tsString).join(', ')}]`,
+    __PTERO_I18N_FALLBACKS__: `{\n${fallbackLines.join('\n')}\n        }`,
+    __PTERO_I18N_LOCALE_ALLOWLIST__: `[${localeCodes.map(phpString).join(', ')}]`,
+    __PTERO_I18N_LANGUAGE_NAMES__: `[\n${localeNames}\n    ]`,
+    __PTERO_I18N_LANGUAGE_SELECTOR__: `[\n${selectorLanguages}\n        ]`,
+};
 const config = fs.readFileSync(path.join(panelRoot, 'config/app.php'), 'utf8');
 if (!config.includes(`'version' => '${upstream.version}'`)) fail(`expected Panel ${upstream.version}`);
 
@@ -72,50 +106,36 @@ if (sha256(path.join(panelRoot, 'app/Http/Requests/Base/LocaleRequest.php')) !==
     fail('upstream locale request hash differs from Panel 1.15.0');
 }
 
-copy('overrides/resources/scripts/i18n.ts', panelRoot, 'resources/scripts/i18n.ts');
+copyRendered('overrides/resources/scripts/i18n.ts', panelRoot, 'resources/scripts/i18n.ts', templateValues);
 copy('overrides/resources/scripts/components/server/users/PermissionTitleBox.tsx', panelRoot, 'resources/scripts/components/server/users/PermissionTitleBox.tsx');
 copy('overrides/resources/scripts/components/server/users/PermissionRow.tsx', panelRoot, 'resources/scripts/components/server/users/PermissionRow.tsx');
-copy('tools/babel-plugin-pterodactyl-i18n.cjs', panelRoot, '.pterodactyl-german/tools/babel-plugin-pterodactyl-i18n.cjs');
-copy('catalog/frontend.en.json', panelRoot, '.pterodactyl-german/catalog/frontend.en.json');
-copy('catalog/frontend.de.json', panelRoot, '.pterodactyl-german/catalog/frontend.de.json');
-copy('catalog/frontend-contexts.json', panelRoot, '.pterodactyl-german/catalog/frontend-contexts.json');
-copy('release.json', panelRoot, '.pterodactyl-german/release.json');
+copy('tools/babel-plugin-pterodactyl-i18n.cjs', panelRoot, '.pterodactyl-locales/tools/babel-plugin-pterodactyl-i18n.cjs');
+copy('locales.json', panelRoot, '.pterodactyl-locales/locales.json');
+copy('catalog/frontend.en.json', panelRoot, '.pterodactyl-locales/catalog/frontend.en.json');
+copy('catalog/frontend-contexts.json', panelRoot, '.pterodactyl-locales/catalog/frontend-contexts.json');
 
 let babel = fs.readFileSync(babelFile, 'utf8');
 babel = babel.replace(
     "module.exports = function (api) {",
-    "const germanLocalization = require.resolve('./.pterodactyl-german/tools/babel-plugin-pterodactyl-i18n.cjs');\n\nmodule.exports = function (api) {",
+    "const localeLocalization = require.resolve('./.pterodactyl-locales/tools/babel-plugin-pterodactyl-i18n.cjs');\n\nmodule.exports = function (api) {",
 );
 babel = babel.replace(
     "const plugins = [",
-    "const plugins = [[germanLocalization, { panelRoot: __dirname }],",
+    "const plugins = [[localeLocalization, { panelRoot: __dirname }],",
 );
-if (!babel.includes('germanLocalization')) fail('could not patch Babel configuration');
+if (!babel.includes('localeLocalization')) fail('could not patch Babel configuration');
 fs.writeFileSync(babelFile, babel);
 
-const frontendEn = readJson('catalog/frontend.en.json');
-const frontendDe = readJson('catalog/frontend.de.json');
-const frontendSwg = mergeLocale(frontendDe, readJson('catalog/frontend.swg.overrides.json'), 'Swabian frontend');
-const frontendBar = mergeLocale(frontendDe, readJson('catalog/frontend.bar.overrides.json'), 'Bavarian frontend');
-const adminEn = readJson('catalog/admin.en.json');
-const adminDe = readJson('catalog/admin.de.json');
-const adminSwg = mergeLocale(adminDe, readJson('catalog/admin.swg.overrides.json'), 'Swabian admin');
-const adminBar = mergeLocale(adminDe, readJson('catalog/admin.bar.overrides.json'), 'Bavarian admin');
-writePhpCatalog(frontendEn, path.join(panelRoot, 'resources/lang/en/frontend.php'));
-writePhpCatalog(frontendDe, path.join(panelRoot, 'resources/lang/de/frontend.php'));
-writePhpCatalog(adminEn, path.join(panelRoot, 'resources/lang/en/admin.php'));
-writePhpCatalog(adminDe, path.join(panelRoot, 'resources/lang/de/admin.php'));
-cloneGermanNamespaces(panelRoot, 'swg');
-cloneGermanNamespaces(panelRoot, 'bar');
-writePhpCatalog(frontendSwg, path.join(panelRoot, 'resources/lang/swg/frontend.php'));
-writePhpCatalog(frontendBar, path.join(panelRoot, 'resources/lang/bar/frontend.php'));
-writePhpCatalog(adminSwg, path.join(panelRoot, 'resources/lang/swg/admin.php'));
-writePhpCatalog(adminBar, path.join(panelRoot, 'resources/lang/bar/admin.php'));
+for (const locale of localeManifest.locales) {
+    ensureLocaleNamespace(panelRoot, locale.code, locale.baseLocale);
+    writePhpCatalog(localeCatalogs[locale.code].frontend, path.join(panelRoot, `resources/lang/${locale.code}/frontend.php`));
+    writePhpCatalog(localeCatalogs[locale.code].admin, path.join(panelRoot, `resources/lang/${locale.code}/admin.php`));
+}
 
-copy('overrides/app/Traits/Helpers/AvailableLanguages.php', panelRoot, 'app/Traits/Helpers/AvailableLanguages.php');
+copyRendered('overrides/app/Traits/Helpers/AvailableLanguages.php', panelRoot, 'app/Traits/Helpers/AvailableLanguages.php', templateValues);
 copy('overrides/app/Http/Controllers/Base/LanguageController.php', panelRoot, 'app/Http/Controllers/Base/LanguageController.php');
-copy('overrides/app/Http/Requests/Base/LocaleRequest.php', panelRoot, 'app/Http/Requests/Base/LocaleRequest.php');
-copy('overrides/resources/views/partials/language-selector.blade.php', panelRoot, 'resources/views/partials/language-selector.blade.php');
+copyRendered('overrides/app/Http/Requests/Base/LocaleRequest.php', panelRoot, 'app/Http/Requests/Base/LocaleRequest.php', templateValues);
+copyRendered('overrides/resources/views/partials/language-selector.blade.php', panelRoot, 'resources/views/partials/language-selector.blade.php', templateValues);
 copy('overrides/public/assets/ptero-i18n-locale.css', panelRoot, 'public/assets/ptero-i18n-locale.css');
 
 patchFile(panelRoot, 'resources/scripts/components/server/users/EditSubuserModal.tsx', '3ec840e4ae0fa6525e79c864db9daa020b0001787f5ed5cb1c71ddae86dd2c09', [
@@ -157,5 +177,15 @@ for (const relative of ['resources/views/templates/wrapper.blade.php', 'resource
 }
 
 const adminReplacements = localizeAdminViews(panelRoot);
-console.log(`Applied English, German, Swabian, and Bavarian localization to staged Panel ${upstream.version}.`);
+const releaseMetadata = {
+    ...readJson('release.json'),
+    upstream: upstream.version,
+    locales: localeCodes,
+    frontendCatalogEntries: Object.keys(localeCatalogs[localeManifest.defaultLocale].frontend).length,
+    adminCatalogEntries: Object.keys(localeCatalogs[localeManifest.defaultLocale].admin).length,
+    adminSourceReplacements: adminReplacements,
+};
+const metadataTarget = path.join(panelRoot, '.pterodactyl-locales/release.json');
+fs.writeFileSync(metadataTarget, `${JSON.stringify(releaseMetadata, null, 2)}\n`, { mode: 0o644 });
+console.log(`Applied ${localeCodes.join(', ')} localization to staged Panel ${upstream.version}.`);
 console.log(`Administration source replacements: ${adminReplacements}`);

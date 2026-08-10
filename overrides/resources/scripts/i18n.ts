@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import I18NextHttpBackend, { HttpBackendOptions } from 'i18next-http-backend';
 import I18NextMultiloadBackendAdapter from 'i18next-multiload-backend-adapter';
 
-type SupportedLocale = 'en' | 'de' | 'swg' | 'bar';
+type SupportedLocale = __PTERO_I18N_SUPPORTED_LOCALE_TYPE__;
 
 interface LocalizedWindow extends Window {
     PterodactylUser?: { language?: string };
@@ -11,7 +11,7 @@ interface LocalizedWindow extends Window {
     SiteConfiguration?: { locale?: string };
 }
 
-const supportedLocales: ReadonlyArray<SupportedLocale> = ['en', 'de', 'swg', 'bar'];
+const supportedLocales: ReadonlyArray<SupportedLocale> = __PTERO_I18N_SUPPORTED_LOCALES__;
 
 function supportedLocale(value: unknown): SupportedLocale | null {
     if (typeof value !== 'string') return null;
@@ -26,7 +26,7 @@ function initialLocale(): SupportedLocale {
     return (
         supportedLocale(localizedWindow.PterodactylUser?.language) ||
         supportedLocale(localizedWindow.SiteConfiguration?.locale) ||
-        'en'
+        __PTERO_I18N_DEFAULT_LOCALE__
     );
 }
 
@@ -59,12 +59,7 @@ i18n.use(I18NextMultiloadBackendAdapter)
         partialBundledLanguages: true,
         supportedLngs: [...supportedLocales],
         nonExplicitSupportedLngs: true,
-        fallbackLng: {
-            swg: ['de', 'en'],
-            bar: ['de', 'en'],
-            de: ['en'],
-            default: ['en'],
-        },
+        fallbackLng: __PTERO_I18N_FALLBACKS__,
         keySeparator: '.',
         backend: {
             backend: I18NextHttpBackend,

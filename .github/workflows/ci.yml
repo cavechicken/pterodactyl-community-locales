@@ -24,6 +24,9 @@ jobs:
       - name: Install localization dependencies
         run: npm ci
 
+      - name: Validate public shell entry points
+        run: bash -n scripts/*.sh
+
       - name: Download pinned upstream Panel
         run: |
           curl --fail --location --silent --show-error \
@@ -41,6 +44,9 @@ jobs:
           npm test
           ./scripts/check-publication.sh
           node tools/apply.mjs "$PWD/panel"
+
+      - name: Check generated locale boundaries
+        run: node tools/check-generated.mjs "$PWD/panel"
 
       - name: Build and test patched Panel
         working-directory: panel

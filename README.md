@@ -11,7 +11,8 @@ locales to the Panel:
 
 The patch is pinned to **Pterodactyl Panel 1.15.0**. It deliberately refuses
 unknown upstream source hashes and refuses to patch any tree containing a live
-`.env` file.
+`.env` file. A transactional installer builds away from production, retains the
+complete previous Panel, and restores it if activation or health checks fail.
 
 This is an independent community project, not an official Pterodactyl release.
 
@@ -41,6 +42,28 @@ Release `complete-r4-20260810` contains:
 
 The reviewed tree passes catalog coverage, project tests, TypeScript, ESLint,
 the 46 upstream Jest tests, PHP syntax checks, and a production Webpack build.
+
+## Install on an existing Panel
+
+Read and inspect the repository before giving it root privileges. On a clean,
+unmodified Panel 1.15.0 installation using the standard `pteroq.service` and a
+detectable PHP-FPM service:
+
+```bash
+git clone https://github.com/cavechicken/pterodactyl-german-locales.git
+cd pterodactyl-german-locales
+sudo ./scripts/install.sh --panel /var/www/pterodactyl
+```
+
+The command downloads the exact official source, verifies its SHA-256, builds
+and tests the localized release in an isolated directory, briefly enables
+maintenance mode, and atomically activates it. It does not run database
+migrations. The previous complete Panel tree remains beside the installation
+until the operator removes it.
+
+Custom Panel code or Composer dependencies are rejected rather than silently
+overwritten. See [Installation](docs/INSTALL.md) for service overrides,
+prebuilt releases, backups, rollback behavior, and acceptance testing.
 
 ## Build a patched release
 
@@ -82,6 +105,10 @@ See [Contributing](CONTRIBUTING.md), the
 [translation style guide](TRANSLATION_STYLE.md), and
 [architecture notes](docs/ARCHITECTURE.md) before changing catalogs or source
 transformers.
+
+New languages are declared in `locales.json`, not hard-coded throughout the
+Panel patch. `npm run locale:add` creates a deliberately failing translation
+worklist so incomplete machine-generated text cannot be released.
 
 ## Security and privacy
 

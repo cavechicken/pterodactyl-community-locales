@@ -13,7 +13,7 @@ function normalizeFilename(filename, panelRoot) {
     return path.relative(panelRoot, filename).split(path.sep).join('/');
 }
 
-module.exports = function pterodactylGermanPlugin({ types: t }) {
+module.exports = function pterodactylLocalePlugin({ types: t }) {
     const english = readJson('catalog/frontend.en.json');
     const contexts = readJson('catalog/frontend-contexts.json');
     const sourceToKey = new Map();

@@ -20,7 +20,11 @@ have a security impact may be reported as ordinary issues.
 - No runtime translation service or external asset host is used.
 - React and Laravel escaping remain enabled.
 - Locale changes require an authenticated session and valid CSRF token.
-- Only `en`, `de`, `swg`, and `bar` are accepted.
+- Only locale codes declared in the reviewed `locales.json` manifest are
+  accepted; the TypeScript and Laravel allowlists are generated from it.
 - The source applier refuses a tree containing `.env`.
 - Dynamic user, server, Egg, filesystem, command, and API content is not
   translated.
+- The installer verifies source and release checksums, rejects modified
+  or stale upstream source files and Composer dependencies, performs no
+  migrations, and retains a full rollback tree.

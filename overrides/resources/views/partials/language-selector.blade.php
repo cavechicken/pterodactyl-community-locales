@@ -1,11 +1,6 @@
 @auth
     @php
-        $pteroI18nLanguages = [
-            'en' => ['short' => 'EN', 'name' => 'English', 'description' => __('frontend.languageDescriptionEnglish')],
-            'de' => ['short' => 'DE', 'name' => 'Deutsch', 'description' => __('frontend.languageDescriptionGerman')],
-            'swg' => ['short' => 'BW', 'name' => 'Schwäbisch', 'description' => __('frontend.languageDescriptionSwabian')],
-            'bar' => ['short' => 'BY', 'name' => 'Bayrisch', 'description' => __('frontend.languageDescriptionBavarian')],
-        ];
+        $pteroI18nLanguages = __PTERO_I18N_LANGUAGE_SELECTOR__;
         $pteroI18nCurrentLanguage = $pteroI18nLanguages[Auth::user()->language] ?? $pteroI18nLanguages['en'];
     @endphp
 

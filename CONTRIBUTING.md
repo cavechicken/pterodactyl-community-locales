@@ -17,6 +17,33 @@ Catalog keys describe meaning, not visual location. Prefer `deleteDatabase`
 over `redModalButtonText`. Reuse a key only when source text and meaning are the
 same.
 
+## Adding another language
+
+Start a locale worklist with, for example:
+
+```bash
+npm run locale:add -- \
+  --code fr \
+  --english-name French \
+  --native-name Français \
+  --badge FR \
+  --base en
+```
+
+This updates `locales.json` and creates complete frontend and administration
+catalogs. Every generated value starts with `[TODO fr]`; verification fails
+until every marker has been replaced by a human-reviewed translation. Translate
+the new language description key in every existing frontend catalog as well.
+
+Use a two- or three-letter ISO 639 code that fits Pterodactyl's existing user
+language field. Keep operational values, placeholders such as `{{value0}}`,
+commands, paths, and runtime data unchanged. A flag-specific CSS treatment is
+optional: the language badge remains usable without one.
+
+Before opening a pull request, run the full source build and visually check the
+client, administration area, dialogs, submenus, mobile view, keyboard flow, and
+fallback behavior with a fresh account.
+
 ## Security and privacy
 
 - Never add production URLs, hostnames, IP addresses, credentials, API data,

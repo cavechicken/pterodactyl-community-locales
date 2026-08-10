@@ -26,23 +26,33 @@ readonly EXPECTED_SHA="$(node -p "require('$ROOT/upstream.json').sha256")"
 printf '%s  %s\n' "$EXPECTED_SHA" "$SOURCE_ARCHIVE" | sha256sum --check --strict
 
 readonly WORK_DIR="$(mktemp -d "$OUTPUT_PARENT/.pterodactyl-locales-build.XXXXXX")"
+readonly PACK_DIR="$WORK_DIR/locales"
 readonly PANEL_DIR="$WORK_DIR/panel"
 cleanup() { rm -rf -- "$WORK_DIR"; }
 trap cleanup EXIT
 
-install -d -m 0755 "$PANEL_DIR"
+install -d -m 0755 "$PACK_DIR" "$PANEL_DIR"
+tar -cf - \
+    --exclude=.git \
+    --exclude=node_modules \
+    --exclude=.generated \
+    --exclude=dist \
+    -C "$ROOT" . | tar -xf - -C "$PACK_DIR"
 tar -xzf "$SOURCE_ARCHIVE" -C "$PANEL_DIR"
 [[ ! -e "$PANEL_DIR/.env" ]] || fail 'official source unexpectedly contains .env'
 
 log 'Installing localization development dependencies.'
-npm --prefix "$ROOT" ci
-npm --prefix "$ROOT" run build:dialects
-npm --prefix "$ROOT" run verify -- "$PANEL_DIR"
-npm --prefix "$ROOT" test
-"$ROOT/scripts/check-publication.sh"
+npm --prefix "$PACK_DIR" ci
+npm --prefix "$PACK_DIR" run build:dialects
+npm --prefix "$PACK_DIR" run verify -- "$PANEL_DIR"
+npm --prefix "$PACK_DIR" test
+"$PACK_DIR/scripts/check-publication.sh"
 
 log 'Applying the localization to the protected source tree.'
-node "$ROOT/tools/apply.mjs" "$PANEL_DIR"
+node "$PACK_DIR/tools/tree-manifest.mjs" write "$PANEL_DIR" "$WORK_DIR/upstream-files.json"
+node "$PACK_DIR/tools/apply.mjs" "$PANEL_DIR"
+install -m 0644 "$WORK_DIR/upstream-files.json" "$PANEL_DIR/.pterodactyl-locales/upstream-files.json"
+node "$PACK_DIR/tools/check-generated.mjs" "$PANEL_DIR"
 
 log 'Installing pinned Panel frontend dependencies.'
 corepack yarn --cwd "$PANEL_DIR" install --frozen-lockfile

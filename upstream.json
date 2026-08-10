@@ -5,6 +5,5 @@
   "archiveUrl": "https://github.com/pterodactyl/panel/releases/download/v1.15.0/panel.tar.gz",
   "archive": "panel.tar.gz",
   "sha256": "321dbc370ea39114e01bc53732cda6ee1b7b84bfa9864546a915dd2ae0d4b917",
-  "license": "MIT",
-  "supportedLocales": ["en", "de", "swg", "bar"]
+  "license": "MIT"
 }

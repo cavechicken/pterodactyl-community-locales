@@ -3,12 +3,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { readLocaleManifest, resolveLocaleCatalogs } from '../tools/locales.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const json = (name) => JSON.parse(fs.readFileSync(path.join(root, name), 'utf8'));
 
-test('declares exactly the four supported locales', () => {
-    assert.deepEqual(json('upstream.json').supportedLocales, ['en', 'de', 'swg', 'bar']);
+test('declares the reviewed base locales through the public manifest', () => {
+    const manifest = readLocaleManifest();
+    assert.equal(manifest.defaultLocale, 'en');
+    assert.deepEqual(manifest.locales.slice(0, 4).map((locale) => locale.code), ['en', 'de', 'swg', 'bar']);
+    assert.doesNotThrow(() => resolveLocaleCatalogs(manifest));
 });
 
 for (const surface of ['frontend', 'admin']) {
@@ -63,9 +67,11 @@ test('regional admin navigation has reviewed labels', () => {
 
 test('locale bootstrap uses safe fallback order', () => {
     const source = fs.readFileSync(path.join(root, 'overrides/resources/scripts/i18n.ts'), 'utf8');
-    assert.match(source, /swg: \['de', 'en'\]/);
-    assert.match(source, /bar: \['de', 'en'\]/);
-    assert.match(source, /supportedLocales: ReadonlyArray<SupportedLocale> = \['en', 'de', 'swg', 'bar'\]/);
+    const apply = fs.readFileSync(path.join(root, 'tools/apply.mjs'), 'utf8');
+    assert.match(source, /__PTERO_I18N_SUPPORTED_LOCALES__/);
+    assert.match(source, /__PTERO_I18N_FALLBACKS__/);
+    assert.match(apply, /localeManifest\.locales\.map/);
+    assert.match(apply, /locale\.fallbacks/);
 });
 
 test('locale bootstrap is translated before the first React render', () => {
@@ -80,13 +86,14 @@ test('locale bootstrap is translated before the first React render', () => {
 
 test('server-side locale request is an exact allowlist', () => {
     const source = fs.readFileSync(path.join(root, 'overrides/app/Http/Requests/Base/LocaleRequest.php'), 'utf8');
-    assert.match(source, /Rule::in\(\['en', 'de', 'swg', 'bar'\]\)/);
+    const apply = fs.readFileSync(path.join(root, 'tools/apply.mjs'), 'utf8');
+    assert.match(source, /Rule::in\(__PTERO_I18N_LOCALE_ALLOWLIST__\)/);
+    assert.match(apply, /localeCodes\.map\(phpString\)/);
 });
 
-test('server-side dialects clone German namespaces before applying overrides', () => {
+test('server-side locales inherit the namespace declared by the manifest', () => {
     const source = fs.readFileSync(path.join(root, 'tools/apply.mjs'), 'utf8');
-    assert.match(source, /cloneGermanNamespaces\(panelRoot, 'swg'\)/);
-    assert.match(source, /cloneGermanNamespaces\(panelRoot, 'bar'\)/);
+    assert.match(source, /ensureLocaleNamespace\(panelRoot, locale\.code, locale\.baseLocale\)/);
 });
 
 test('staging applier is reusable and refuses live environment trees', () => {
