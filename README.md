@@ -51,8 +51,8 @@ detectable PHP-FPM service:
 
 ```bash
 git clone --branch v0.1.0 --depth 1 \
-  https://github.com/cavechicken/pterodactyl-community-locales.git
-cd pterodactyl-community-locales
+  https://github.com/cavechicken/pterodactyl-community-locales.git &&
+cd pterodactyl-community-locales &&
 sudo ./scripts/install.sh --panel /var/www/pterodactyl
 ```
 
