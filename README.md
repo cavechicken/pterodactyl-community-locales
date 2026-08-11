@@ -1,4 +1,4 @@
-# Pterodactyl German Locales
+# Pterodactyl Community Locales
 
 An independent, source-level localization patch for
 [Pterodactyl Panel](https://github.com/pterodactyl/panel). It adds four account
@@ -50,8 +50,8 @@ unmodified Panel 1.15.0 installation using the standard `pteroq.service` and a
 detectable PHP-FPM service:
 
 ```bash
-git clone https://github.com/cavechicken/pterodactyl-german-locales.git
-cd pterodactyl-german-locales
+git clone https://github.com/cavechicken/pterodactyl-community-locales.git
+cd pterodactyl-community-locales
 sudo ./scripts/install.sh --panel /var/www/pterodactyl
 ```
 

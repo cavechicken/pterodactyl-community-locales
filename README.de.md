@@ -1,4 +1,4 @@
-# Deutsche Pterodactyl-Sprachpakete
+# Pterodactyl Community-Sprachpakete
 
 Dieses unabhängige Projekt ergänzt Pterodactyl Panel 1.15.0 um Englisch,
 Standarddeutsch, Schwäbisch und Bayrisch. Die Übersetzung wird auf Quellcodeebene
