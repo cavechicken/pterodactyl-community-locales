@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v0.1.0 - 2026-08-11
 
 - Added checksum-pinned one-command build and transactional installation.
 - Added complete-tree rollback, service discovery, health gates, and
@@ -9,6 +9,8 @@
   additional Panel source files are rejected before maintenance mode.
 - Added a manifest-driven locale model and a failing-by-default new-language
   scaffold for community translations.
+- Added an early target preflight so invalid Panel paths fail before downloads
+  or release builds begin.
 
 ## complete-r4-20260810
 

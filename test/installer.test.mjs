@@ -93,6 +93,12 @@ test('one-command installer pins HTTPS downloads and delegates transactionally',
     assert.match(source, /--proto '=https' --tlsv1\.2/);
     assert.match(source, /build-release\.sh/);
     assert.match(source, /install-release\.sh/);
+    assert.match(source, /Panel directory does not exist/);
+    assert.match(source, /Panel artisan or \.env is absent/);
+    assert.ok(
+        source.indexOf('Panel directory does not exist') < source.indexOf('Downloading the checksum-pinned'),
+        'the live Panel target must be validated before a source download or build',
+    );
     assert.doesNotMatch(source, /curl[^\n]*\|\s*(?:ba)?sh/);
     assert.doesNotMatch(source, /\beval\b/);
 });

@@ -55,6 +55,14 @@ for command in chmod curl mktemp node realpath rm; do
     command -v "$command" >/dev/null || fail "required command is absent: $command"
 done
 
+# Reject an invalid target before downloading dependencies or building a release.
+[[ -d "$PANEL" ]] || fail "Panel directory does not exist: $PANEL"
+[[ ! -L "$PANEL" ]] || fail 'Panel path must not be a symbolic link'
+PANEL=$(realpath -e -- "$PANEL") || fail "could not resolve Panel directory: $PANEL"
+[[ -f "$PANEL/artisan" && -f "$PANEL/.env" ]] || fail 'Panel artisan or .env is absent'
+[[ -d "$PANEL/storage" && -f "$PANEL/vendor/autoload.php" ]] \
+    || fail 'Panel storage or Composer vendor tree is absent'
+
 work_dir=''
 cleanup() { if [[ -n "$work_dir" && -d "$work_dir" ]]; then rm -rf -- "$work_dir"; fi; }
 trap cleanup EXIT INT TERM

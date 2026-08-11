@@ -18,6 +18,12 @@ Nach Prüfung des Quellcodes kann eine unveränderte Installation von Panel
 sudo ./scripts/install.sh --panel /var/www/pterodactyl
 ```
 
+`/var/www/pterodactyl` muss durch den tatsächlichen absoluten Pfad einer
+bestehenden Panel-Installation ersetzt werden. Das Ziel wird geprüft, bevor
+Downloads oder der Build beginnen. Ein bereits lokalisiertes Panel wird nicht
+erneut überschrieben; dafür ist eine versionsgebundene Aktualisierung oder eine
+geprüfte Neuinstallation erforderlich.
+
 Das Skript prüft den offiziellen Quellcode per SHA-256, baut außerhalb der
 Produktivinstallation, aktiviert kurz den Wartungsmodus und behält den
 vollständigen vorherigen Panel-Verzeichnisbaum für ein Rollback. Es führt keine

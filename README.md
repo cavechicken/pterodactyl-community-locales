@@ -50,10 +50,16 @@ unmodified Panel 1.15.0 installation using the standard `pteroq.service` and a
 detectable PHP-FPM service:
 
 ```bash
-git clone https://github.com/cavechicken/pterodactyl-community-locales.git
+git clone --branch v0.1.0 --depth 1 \
+  https://github.com/cavechicken/pterodactyl-community-locales.git
 cd pterodactyl-community-locales
 sudo ./scripts/install.sh --panel /var/www/pterodactyl
 ```
+
+Replace `/var/www/pterodactyl` with the actual absolute path of the existing
+Panel. The installer validates that target before downloading or building
+anything. Do not run it against an already-localized tree; upgrades require a
+version-specific release or a reviewed clean reinstall.
 
 The command downloads the exact official source, verifies its SHA-256, builds
 and tests the localized release in an isolated directory, briefly enables

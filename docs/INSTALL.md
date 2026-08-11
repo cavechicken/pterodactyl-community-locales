@@ -26,6 +26,10 @@ After inspecting the cloned repository:
 sudo ./scripts/install.sh --panel /var/www/pterodactyl
 ```
 
+The path is an example. Replace it with the actual absolute path of the
+existing Panel. The wrapper verifies the directory, `artisan`, `.env`, runtime
+storage, and Composer vendor tree before it downloads or builds anything.
+
 The installer downloads only the exact URL in `upstream.json`; the builder
 then verifies the pinned SHA-256. Building runs in a protected temporary tree,
 not inside the live Panel.
